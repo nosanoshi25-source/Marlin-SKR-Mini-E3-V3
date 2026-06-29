@@ -1,0 +1,56 @@
+name: Build Marlin Firmware
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Install PlatformIO
+      run: |
+        python -m pip install --upgrade pip
+        pip install platformio
+    
+    - name: Clone Marlin 2.1.x
+      run: |
+        git clone --depth=1 --branch=2.1.x https://github.com/MarlinFirmware/Marlin.git marlin-src
+    
+    - name: Copy Configuration files
+      run: |
+        cp Configuration.h marlin-src/Marlin/
+        cp Configuration_adv.h marlin-src/Marlin/
+    
+    - name: Build firmware
+      run: |
+        cd marlin-src
+        platformio run -e STM32F103RE_bigtree
+    
+    - name: List build output
+      run: ls -lah marlin-src/.pio/build/STM32F103RE_bigtree/
+    
+    - name: Upload firmware as artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: firmware
+        path: marlin-src/.pio/build/STM32F103RE_bigtree/firmware.bin
+        retention-days: 30
+    
+    - name: Create Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: marlin-src/.pio/build/STM32F103RE_bigtree/firmware.bin
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
