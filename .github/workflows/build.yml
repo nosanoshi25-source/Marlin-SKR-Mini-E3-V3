@@ -11,7 +11,7 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -41,9 +41,9 @@ jobs:
       run: ls -lah marlin-src/.pio/build/STM32F103RE_bigtree/
     
     - name: Upload firmware as artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: firmware
+        name: firmware-bin
         path: marlin-src/.pio/build/STM32F103RE_bigtree/firmware.bin
         retention-days: 30
     
